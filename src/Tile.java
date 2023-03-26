@@ -67,19 +67,36 @@ public class Tile {
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
+    public int indexOf(Object o) {
+        if (!(o instanceof Tile)) {
+            return -1;
+        }
+        Tile otherTile = (Tile) o;
+        for (int i = 0; i < player.getHand().size(); i++) {
+            Tile tile = player.getHand().get(i);
+            if (tile.toString().equals(otherTile.toString())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+    public boolean equals(Tile obj) {
+        if (this.sum() == obj.sum()){
             return true;
-        if (obj == null)
+        }
+        else{
             return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Tile other = (Tile) obj;
-        if (left != other.left)
-            return false;
-        if (right != other.right)
-            return false;
-        return true;
+        }
+    }
+
+    public int compareTo(Tile other) {
+        // Compare tiles based on their sum
+        return Integer.compare(this.sum(), other.sum());
+    }
+
+    public Player getPlayer() {
+        return this.player;
     }
 }

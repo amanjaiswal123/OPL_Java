@@ -1,10 +1,9 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Player {
     // The player class is used to create a player object. The player object is used to store the player's data including
     // their player id, color, boneyard, hand, stacks, score, and rounds won.
-    private int playerID;
+    private String playerID;
     private String color;
     private List<Tile> boneyard;
     private List<Tile> hand;
@@ -12,10 +11,11 @@ public class Player {
     private int score;
     private int roundsWon;
     private int handOffset;
+    private Scanner scanner;
 
     public Player() {
         // The player's ID used to identify the player
-        this.playerID = -1;
+        this.playerID = "";
         // The player's color used to identify the player's tiles
         this.color = "";
         // The player's boneyard is a list of tile objects in the player's boneyard. A list of tile objects
@@ -30,15 +30,18 @@ public class Player {
         this.roundsWon = 0;
         // Used to scroll through the player's hand in gui.hand_listener
         this.handOffset = 0;
+        this.scanner = new Scanner(System.in);
     }
 
     // Getters and setters for the class members
-    public int getPlayerID() {
+    public String getPlayerID() {
+
         return playerID;
     }
 
-    public void setPlayerID(int playerID) {
-        this.playerID = playerID;
+    public void setPlayerId(String playerID_) {
+        this.playerID = playerID_;
+
     }
 
     public String getColor() {
@@ -46,6 +49,7 @@ public class Player {
     }
 
     public void setColor(String color) {
+
         this.color = color;
     }
 
@@ -104,5 +108,247 @@ public class Player {
                 boneyard.add(cTile);
             }
         }
+    }
+
+    public void moveFromBoneyardToHandN(int n) {
+        for (int x = 0; x < n; x++) {
+            hand.add(boneyard.remove(0));
+        }
+    }
+
+    public void moveFromHandToStackN(int n) {
+        for (int x = 0; x < n; x++) {
+            stack.add(hand.remove(0));
+        }
+    }
+
+    public void shuffleBoneyard() {
+        Collections.shuffle(boneyard);
+    }
+
+    public void createNewPlayer(String playerID_, String color) {
+        // Assign a unique player ID
+        setPlayerId(playerID_);
+        // Assign a unique player color
+        setColor(color);
+        // Generate a boneyard of size doubleSetLength
+        generateBoneyard(6);
+        // Initialize the player's hand to an empty list
+        hand.clear();
+        // Shuffle the boneyard
+        shuffleBoneyard();
+        // Move the double set length amount of tiles from the boneyard to the player's hand
+        moveFromBoneyardToHandN(6);
+        // Initialize the player's stack to an empty list
+        stack.clear();
+        // Move the double set length amount of tiles from the player's hand to the player's stack
+        moveFromHandToStackN(6);
+        // Set the player's score to 0
+        score = 0;
+        // Set the player's rounds won to 0
+        roundsWon = 0;
+    }
+
+    public boolean checkValidMove(Tile handTile, Tile stackTile) {
+        // By default, validMove is false until proven otherwise by the if statements below
+        boolean validMove = false;
+
+        if (stackTile.isDouble()) {
+            if (handTile.isDouble()) {
+                if (handTile.compareTo(stackTile) > 0) {
+                    // If the hand tile is a double and the stack tile is a double,
+                    // we can use it if the hand tile is greater than the stack tile
+                    validMove = true;
+                }
+            } else {
+                if (handTile.compareTo(stackTile) >= 0) {
+                    // If the hand tile is not a double and the stack tile is a double,
+                    // the hand tile must be greater than or equal to the stack tile
+                    validMove = true;
+                }
+            }
+        } else {
+            if (handTile.isDouble()) {
+                // If the hand tile is a double and the stack tile is not a double, the move is valid no matter what
+                validMove = true;
+            } else {
+                if (handTile.compareTo(stackTile) >= 0) {
+                    // If the hand tile is not a double and the stack tile is not a double,
+                    // the hand tile must be greater than or equal to the stack tile
+                    validMove = true;
+                }
+            }
+        }
+
+        return validMove;
+    }
+
+
+    public List<Object> recommendMove(List<Player> players) {
+        List<List<Object>> validMoves = new ArrayList<>();
+
+        for (Tile handTile : hand) {
+            for (Player currentPlayer : players) {
+                for (Tile stackTile : currentPlayer.getStack()) {
+                    if (checkValidMove(handTile, stackTile)) {
+                        int difference = handTile.difference(stackTile);
+                        List<Object> move = new ArrayList<>();
+                        move.add(handTile);
+                        move.add(currentPlayer.getStack());
+                        move.add(stackTile);
+                        move.add(difference);
+                        validMoves.add(move);
+                    }
+                }
+            }
+        }
+
+        if (validMoves.isEmpty()) {
+            List<Object> passMove = new ArrayList<>();
+            passMove.add("pass");
+            return passMove;
+        }
+
+        validMoves.sort((move1, move2) -> Integer.compare((int) move1.get(3), (int) move2.get(3)));
+
+        List<Object> bestMove = validMoves.get(0);
+
+        for (List<Object> move : validMoves) {
+            Tile stackTile = (Tile) move.get(2);
+            String stackTilePlayerId = stackTile.getPlayer().getPlayerID();
+
+            if (!stackTilePlayerId.equals(playerID)) {
+                bestMove = move;
+                break;
+            }
+        }
+
+        System.out.println("\nThe Best Move is " + bestMove.get(0) + " on " + bestMove.get(2) + " because it has a difference of " + bestMove.get(3) + " which is the lowest difference move on an opponent's stack.");
+        return bestMove;
+    }
+
+
+    public String getValidInput(String prompt, List<String> validInputs) {
+        String input;
+
+        while (true) {
+            System.out.print(prompt);
+            input = this.scanner.nextLine().trim().toUpperCase();
+
+            if (validInputs.contains(input)) {
+                break;
+            } else {
+                System.out.println("Invalid input. Please try again.");
+            }
+        }
+
+        return input;
+    }
+    public void displayBoneyard() {
+        for (Tile tile : boneyard) {
+            tile.displayTile();
+        }
+        System.out.println();
+    }
+
+    public void displayHand() {
+        for (Tile tile : hand) {
+            tile.displayTile();
+        }
+        System.out.println();
+    }
+
+    public void moveFromHandToBoneyardN(int n) {
+        for (int x = 0; x < n; x++) {
+            boneyard.add(hand.remove(0));
+        }
+    }
+
+    public List<Object> getMove(List<Player> players, List<Object> recMove) {
+        List<String> validHandInputs = new ArrayList<>();
+        if (recMove.get(0).equals("pass")) {
+            validHandInputs.add("pass");
+            this.getValidInput("Enter a tile from your hand to play: ", validHandInputs);
+            return this.getMove(players, recMove);
+        }
+        else {
+            for (Tile handTile : hand) {
+                validHandInputs.add(handTile.toString().substring(1, 4));
+            }
+            String handTileSTR = this.getValidInput("Enter a tile from your hand to play: ", validHandInputs);
+            Tile handTile = null;
+            for (Tile c_handTile : hand) {
+                if (c_handTile.toString().substring(1, 4).equals(handTileSTR)) {
+                    handTile = c_handTile;
+                    break;
+                }
+            }
+            if (handTile == null) {
+                System.out.println("Invalid input. Please enter a tile from the hand");
+                return this.getMove(players, recMove);
+            }
+            List<String> ValidStackInputs = new ArrayList<>();
+            for (Player currentPlayer : players) {
+                for (Tile stackTile : currentPlayer.getStack()) {
+                    ValidStackInputs.add(stackTile.toString().substring(1, 4));
+                }
+            }
+            String stackTileSTR = this.getValidInput("Enter a tile from the stack to play on: ", ValidStackInputs);
+            Tile stackTile = null;
+            for (Player currentPlayer : players) {
+                for (Tile c_stackTile : currentPlayer.getStack()) {
+                    if (c_stackTile.toString().substring(1, 4).equals(stackTileSTR)) {
+                        stackTile = c_stackTile;
+                        break;
+                    }
+                }
+                if (stackTile != null) {
+                    break;
+                }
+            }
+            if (stackTile == null) {
+                System.out.println("Invalid input. Please enter a tile from the stack.");
+                return this.getMove(players, recMove);
+            }
+            List<Object> move = new ArrayList<>();
+            move.add(handTile);
+            move.add(stackTile);
+            return move;
+        }
+    }
+    public List<Object> getValidMove(List<Player> players, List<Object> recMove) {
+        List<Object> move = this.getMove(players, recMove);
+        Tile handTile = (Tile) move.get(0);
+        Tile stackTile = (Tile) move.get(1);
+        if (checkValidMove(handTile, stackTile)){
+            return move;
+        } else{
+            System.out.println("Invalid move. Please try again.");
+            return this.getValidMove(players, recMove);
+        }
+    }
+
+    public int scoreHand() {
+        int sum = 0;
+        for (Tile tile : this.hand) {
+            sum += tile.sum();
+        }
+        return sum;
+    }
+
+    public int scoreStack() {
+        int sum = 0;
+        for (Tile tile : this.stack) {
+            sum += tile.sum();
+        }
+        return sum;
+    }
+
+    public void addScore(int score) {
+        this.score += score;
+    }
+
+    public void clearHand() {
+        hand.clear();
     }
 }
