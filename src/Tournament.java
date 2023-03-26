@@ -1,14 +1,15 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 public class Tournament {
     Player player1;
+    private Scanner scanner;
+
     List<Player> players;
 
     public Tournament() {
         this.start_new_tournament();
         this.players = new ArrayList<>();
+        this.scanner = new Scanner(System.in);
     }
 
     public void start_new_tournament() {
@@ -22,6 +23,44 @@ public class Tournament {
         this.players.add(computerPlayer);
         this.determineOrder();
         this.play_round(1);
+    }
+
+    public String getValidInput(String prompt, List<String> validInputs) {
+        String input;
+
+        while (true) {
+            System.out.print(prompt);
+            input = this.scanner.nextLine().trim().toUpperCase();
+
+            if (validInputs.contains(input)) {
+                break;
+            } else {
+                System.out.println("Invalid input. Please try again.");
+            }
+        }
+
+        return input;
+    }
+    public void play_again(){
+        String input = this.getValidInput("Would you like to play again? (Y/N): ", Arrays.asList("Y", "N"));
+        if (input.equals("Y")) {
+            this.start_new_tournament();
+        } else {
+            boolean first = true;
+            Player winner = null;
+            for (Player player : players) {
+                if (first) {
+                    winner = player;
+                    first = false;
+                } else {
+                    if (player.getRoundsWon() > winner.getRoundsWon()) {
+                        winner = player;
+                    }
+                }
+            }
+            System.out.println("Player " + winner.getPlayerID() + " won the tournament!");
+            System.out.println("Thanks for playing!");
+        }
     }
 
     public void determineOrder() {
@@ -248,9 +287,27 @@ public class Tournament {
     }
 
 
-    private void scoreRound () {
-        //Unfinished
-        int x = 0;
+    public void scoreRound () {
+        Map<String, Integer> finalScores = new HashMap<>();
+        boolean first = true;
+        int highestScore = 0;
+        Player winner = null;
+        for (Player currentPlayer : players) {
+            int score = currentPlayer.getScore();
+            if (first) {
+                winner = currentPlayer;
+                highestScore = score;
+                first = false;
+            } else if (currentPlayer.getScore() > highestScore) {
+                winner = currentPlayer;
+                highestScore = score;
+            }
+            finalScores.put(currentPlayer.getPlayerID(), score);
+            currentPlayer.addScore(score);
+            System.out.println("Player " + currentPlayer.getPlayerID() + " scored " + score + " points");
+        }
+        winner.addRoundWins();
+        System.out.println("Player " + winner.getPlayerID() + " won the round");
     }
 
     public static void main (String[]args){

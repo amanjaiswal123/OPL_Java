@@ -351,4 +351,8 @@ public class Player {
     public void clearHand() {
         hand.clear();
     }
+
+    public void addRoundWins() {
+        this.roundsWon++;
+    }
 }
