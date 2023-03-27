@@ -7,22 +7,23 @@ public class Tournament {
     List<Player> players;
 
     public Tournament() {
-        this.start_new_tournament();
         this.players = new ArrayList<>();
         this.scanner = new Scanner(System.in);
+        this.start_new_tournament();
     }
 
     public void start_new_tournament() {
         // Create a new player object
         Player humanPlayer = new Player();
         humanPlayer.createNewPlayer("Human", "B");
-        Player computerPlayer = new Player();
+        Player computerPlayer = new computerPlayer();
         computerPlayer.createNewPlayer("Computer", "W");
         this.players = new ArrayList<>();
         this.players.add(humanPlayer);
         this.players.add(computerPlayer);
         this.determineOrder();
         this.play_round(1);
+        this.play_again();
     }
 
     public String getValidInput(String prompt, List<String> validInputs) {
@@ -93,7 +94,7 @@ public class Tournament {
             for (Player compPlayer : players) {
                 for (Player currentPlayer : players) {
                     if (compPlayer.getHand().get(0).equals(currentPlayer.getHand().get(0)) && !compPlayer.equals(currentPlayer)) {
-                        System.out.println("\n\nPlayer " + compPlayer.getPlayerID() + " and Player " + currentPlayer.getPlayerID() + " have equal tiles re-shuffling");
+                        System.out.println("\nPlayer " + compPlayer.getPlayerID() + " and Player " + currentPlayer.getPlayerID() + " have equal tiles re-shuffling");
                         equal = true;
                         for (Player currentPlayer2 : players) {
                             currentPlayer2.moveFromHandToBoneyardN(1);
@@ -112,6 +113,7 @@ public class Tournament {
                     currentPlayer.moveFromBoneyardToHandN(5);
                 }
             }
+            System.out.println("\nHand Number: " + handnum + "\n");
             playHand();
             handnum += 1;
         }
@@ -121,6 +123,7 @@ public class Tournament {
                     currentPlayer.moveFromBoneyardToHandN(6);
                 }
             }
+            System.out.println("\nHand Number: " + handnum + "\n");
             playHand();
             handnum += 1;
         }
@@ -130,6 +133,7 @@ public class Tournament {
                     currentPlayer.moveFromBoneyardToHandN(6);
                 }
             }
+            System.out.println("\nHand Number: " + handnum + "\n");
             playHand();
             handnum += 1;
         }
@@ -139,16 +143,18 @@ public class Tournament {
                     currentPlayer.moveFromBoneyardToHandN(4);
                 }
             }
+            System.out.println("\nHand Number: " + handnum + "\n");
             playHand();
             handnum += 1;
         } else {
+            System.out.println("\nRound Finished Scoring Round\n");
             this.scoreRound();
         }
     }
 
     public void displayAllStacks() {
         for (Player player : this.players) {
-            System.out.print("Player " + player.getPlayerID() + "'s stack: ");
+            System.out.print("Player " + player.getPlayerID() + "'s Stack: ");
             for (Tile tile : player.getStack()) {
                 tile.displayTile();
             }
@@ -192,7 +198,7 @@ public class Tournament {
         }
         while (consecutivePasses < players.size() && !allEmptyHands) {
             for (Player currentPlayer : players) {
-                System.out.println("\nPlayer " + currentPlayer.getPlayerID() + "'s turn\n");
+                System.out.println("Player " + currentPlayer.getPlayerID() + "'s turn:\n");
                 currentPlayer.displayHand();
                 System.out.println();
                 this.displayAllStacks();
@@ -201,11 +207,11 @@ public class Tournament {
                 if (move.get(0) != "pass") {
                     handTile = (Tile) move.get(0);
                     Tile stackTile = (Tile) move.get(1);
-                    System.out.println("\nPlayer " + currentPlayer.getPlayerID() + " played tile ");
+                    System.out.print("Player " + currentPlayer.getPlayerID() + " played tile ");
                     handTile.displayTile();
-                    System.out.println("to tile ");
+                    System.out.print("to tile ");
                     stackTile.displayTile();
-                    System.out.println("in the stacks");
+                    System.out.println("\n");
                     List<Tile> stack = new ArrayList<>();
                     executeMove(handTile, stackTile);
                     consecutivePasses = 0;

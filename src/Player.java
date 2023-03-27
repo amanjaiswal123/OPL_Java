@@ -194,7 +194,6 @@ public class Player {
                         int difference = handTile.difference(stackTile);
                         List<Object> move = new ArrayList<>();
                         move.add(handTile);
-                        move.add(currentPlayer.getStack());
                         move.add(stackTile);
                         move.add(difference);
                         validMoves.add(move);
@@ -209,12 +208,12 @@ public class Player {
             return passMove;
         }
 
-        validMoves.sort((move1, move2) -> Integer.compare((int) move1.get(3), (int) move2.get(3)));
+        validMoves.sort((move1, move2) -> Integer.compare((int) move1.get(2), (int) move2.get(2)));
 
         List<Object> bestMove = validMoves.get(0);
 
         for (List<Object> move : validMoves) {
-            Tile stackTile = (Tile) move.get(2);
+            Tile stackTile = (Tile) move.get(1);
             String stackTilePlayerId = stackTile.getPlayer().getPlayerID();
 
             if (!stackTilePlayerId.equals(playerID)) {
@@ -223,7 +222,6 @@ public class Player {
             }
         }
 
-        System.out.println("\nThe Best Move is " + bestMove.get(0) + " on " + bestMove.get(2) + " because it has a difference of " + bestMove.get(3) + " which is the lowest difference move on an opponent's stack.");
         return bestMove;
     }
 
@@ -252,6 +250,7 @@ public class Player {
     }
 
     public void displayHand() {
+        System.out.print("Player " + this.playerID + "'s Hand: ");
         for (Tile tile : hand) {
             tile.displayTile();
         }
@@ -317,6 +316,10 @@ public class Player {
         }
     }
     public List<Object> getValidMove(List<Player> players, List<Object> recMove) {
+        boolean askUserRecMove = this.getValidInput("\nWould you like a recommended move? (Y/N): ", Arrays.asList("Y", "N")).equals("Y");
+        if (askUserRecMove) {
+            System.out.println("The Best Move is " + recMove.get(0) + " on " + recMove.get(1) + " because it has a difference of " + recMove.get(2) + " which is the lowest difference move on an opponent's stack.\n");
+        }
         List<Object> move = this.getMove(players, recMove);
         Tile handTile = (Tile) move.get(0);
         Tile stackTile = (Tile) move.get(1);
