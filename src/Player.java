@@ -128,27 +128,53 @@ public class Player {
 
     public void createNewPlayer(String playerID_, String color) {
         // Assign a unique player ID
-        setPlayerId(playerID_);
+        this.setPlayerId(playerID_);
         // Assign a unique player color
-        setColor(color);
+        this.setColor(color);
         // Generate a boneyard of size doubleSetLength
-        generateBoneyard(6);
+        this.generateBoneyard(6);
         // Initialize the player's hand to an empty list
-        hand.clear();
+        this.hand.clear();
         // Shuffle the boneyard
-        shuffleBoneyard();
+        this.shuffleBoneyard();
         // Move the double set length amount of tiles from the boneyard to the player's hand
-        moveFromBoneyardToHandN(6);
+        this.moveFromBoneyardToHandN(6);
         // Initialize the player's stack to an empty list
-        stack.clear();
+        this.stack.clear();
         // Move the double set length amount of tiles from the player's hand to the player's stack
-        moveFromHandToStackN(6);
+        this.moveFromHandToStackN(6);
         // Set the player's score to 0
         score = 0;
         // Set the player's rounds won to 0
         roundsWon = 0;
     }
 
+    public void loadPlayer(String playerID_, String color_, List<Tile> boneyard_, List<Tile> hand_, List<Tile> stack_, int score_, int roundsWon_) {
+        // Assign a unique player ID
+        this.setPlayerId(playerID_);
+        // Assign a unique player color
+        this.setColor(color_);
+        // Generate a boneyard of size doubleSetLength
+        this.setBoneyard(boneyard_);
+        // Initialize the player's hand to an empty list
+        // Move the double set length amount of tiles from the boneyard to the player's hand
+        if (boneyard_.size() == 28) {
+            // Shuffle the boneyard
+            this.shuffleBoneyard();
+            this.moveFromBoneyardToHandN(6);
+            this.moveFromHandToStackN(6);
+        }
+        else{
+            this.setHand(hand_);
+            this.setStack(stack_);
+        }
+        // Move the double set length amount of tiles from the player's hand to the player's stack
+
+        // Set the player's score to 0
+        this.score = score_;
+        // Set the player's rounds won to 0
+        this.roundsWon = roundsWon_;
+    }
     public boolean checkValidMove(Tile handTile, Tile stackTile) {
         // By default, validMove is false until proven otherwise by the if statements below
         boolean validMove = false;

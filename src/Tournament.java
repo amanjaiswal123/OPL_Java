@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 public class Tournament {
@@ -9,11 +12,12 @@ public class Tournament {
     public Tournament() {
         this.players = new ArrayList<>();
         this.scanner = new Scanner(System.in);
-        this.start_new_tournament();
+        this.load_tournament();
     }
 
     public void start_new_tournament() {
         // Create a new player object
+        this.players = new ArrayList<>();
         Player humanPlayer = new Player();
         humanPlayer.createNewPlayer("Human", "B");
         Player computerPlayer = new computerPlayer();
@@ -42,6 +46,9 @@ public class Tournament {
 
         return input;
     }
+
+
+
     public void play_again(){
         String input = this.getValidInput("Would you like to play again? (Y/N): ", Arrays.asList("Y", "N"));
         if (input.equals("Y")) {
@@ -50,6 +57,7 @@ public class Tournament {
             boolean first = true;
             Player winner = null;
             for (Player player : players) {
+                System.out.println("Player " + player.getPlayerID() + " Round Total Wins: " + player.getRoundsWon());
                 if (first) {
                     winner = player;
                     first = false;
@@ -59,7 +67,11 @@ public class Tournament {
                     }
                 }
             }
-            System.out.println("Player " + winner.getPlayerID() + " won the tournament!");
+            if (players.get(0).getRoundsWon() == players.get(1).getRoundsWon()) {
+                System.out.println("\nThe Tournament is a Tie!\n");
+            } else {
+                System.out.println("Player " + winner.getPlayerID() + " won the tournament!");
+            }
             System.out.println("Thanks for playing!");
         }
     }
@@ -89,6 +101,11 @@ public class Tournament {
 
             System.out.println("\nComparing Tiles...");
             players.sort((p1, p2) -> p2.getHand().get(0).compareTo(p1.getHand().get(0)));
+
+            System.out.println("\nOrder is:");
+            for (Player compPlayer : players) {
+                System.out.println("Player " + compPlayer.getPlayerID() + " with tile " + compPlayer.getHand().get(0));
+            }
 
             outerLoop:
             for (Player compPlayer : players) {
@@ -241,7 +258,7 @@ public class Tournament {
           System.out.println("Final Stacks");
           this.displayAllStacks();
           // Score the hand
-          System.out.println("Scoring Hands:");
+          System.out.println("\nScoring Hands:");
           // Get the scores for the hand
           Map<String, Integer> handScores = this.scoreHand();
     //     // Get the scores for the stacks
@@ -312,11 +329,187 @@ public class Tournament {
             currentPlayer.addScore(score);
             System.out.println("Player " + currentPlayer.getPlayerID() + " scored " + score + " points");
         }
-        winner.addRoundWins();
-        System.out.println("Player " + winner.getPlayerID() + " won the round");
+        if (players.get(0).getScore() == players.get(1).getScore()) {
+            System.out.println("\nIt's a tie!\n");
+        } else {
+            winner.addRoundWins();
+            System.out.println("Player " + winner.getPlayerID() + " won the round");
+        }
+
     }
 
-    public static void main (String[]args){
+    public List<Object> extractPlayerData(String filePath) {
+        List<Map<String, Object>> playerData = new ArrayList<>();
+        Map<String, Object> ComputerPlayerData = new HashMap<>();
+        Map<String, Object> HumanPlayerData = new HashMap<>();
+        String turn = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            String currentPlayer = null;
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith("Computer:")) {
+                    currentPlayer = "Computer";
+                    ComputerPlayerData.put("playerID", "Computer");
+                } else if (line.startsWith("Human:")) {
+                    currentPlayer = "Human";
+                    HumanPlayerData.put("playerID", "Human");
+                } else if (line.startsWith("   Stacks:")) {
+                    String[] stacks = new String[0];
+                    if (line.split(":").length > 1){
+                        stacks = line.split(":")[1].trim().split("\\s+");
+                    }
+                    if (currentPlayer.equals("Computer")) {
+                        ComputerPlayerData.put("stacks", stacks);
+                    } else if (currentPlayer.equals("Human")) {
+                        HumanPlayerData.put("stacks", stacks);
+                    }
+                } else if (line.startsWith("   Boneyard:")) {
+                    String[] boneyard = new String[0];
+                    if (line.split(":").length > 1) {
+                        boneyard = line.split(":")[1].trim().split("\\s+");
+                    }
+                    if (currentPlayer.equals("Computer")) {
+                        ComputerPlayerData.put("boneyard", boneyard);
+                    } else if (currentPlayer.equals("Human")) {
+                        HumanPlayerData.put("boneyard", boneyard);
+                    }
+                } else if (line.startsWith("   Hand:")) {
+                    String[] hand = new String[0];
+                    if (line.split(":").length > 1) {
+                        hand = line.split(":")[1].trim().split("\\s+");
+                    }
+                    if (currentPlayer.equals("Computer")) {
+                        ComputerPlayerData.put("hand", hand);
+                    } else if (currentPlayer.equals("Human")) {
+                        HumanPlayerData.put("hand", hand);
+                    }
+                } else if (line.startsWith("   Score:")) {
+                    int score = 0;
+                    if (line.split(":").length > 1) {
+                        score = Integer.parseInt(line.split(":")[1].trim());
+                    }
+                    if (currentPlayer.equals("Computer")) {
+                        ComputerPlayerData.put("score", score);
+                    } else if (currentPlayer.equals("Human")) {
+                        HumanPlayerData.put("score", score);
+                    }
+                } else if (line.startsWith("   Rounds Won:")) {
+                    int roundsWon = 0;
+                    if (line.split(":").length > 1) {
+                        roundsWon = Integer.parseInt(line.split(":")[1].trim());
+                    }
+                    if (currentPlayer.equals("Computer")) {
+                        ComputerPlayerData.put("rounds_won", roundsWon);
+                    } else if (currentPlayer.equals("Human")) {
+                        HumanPlayerData.put("rounds_won", roundsWon);
+                    }
+                } else if (line.startsWith("Turn:")) {
+                    if (line.split(":").length > 1) {
+                        turn = line.split(":")[1].trim();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        playerData.add(ComputerPlayerData);
+        playerData.add(HumanPlayerData);
+        return List.of(playerData, turn);
+    }
+
+    public void load_tournament () {
+        List<Object> playerData = extractPlayerData("C:/Users/Aman Jaiswal/IdeaProjects/OPL/Seralize/seralize1.txt");
+        Player humanPlayer = new Player();
+        Player computerPlayer_ = new computerPlayer();
+        List<Map<String, Object>> serializedPlayers = (List<Map<String, Object>>) playerData.get(0);
+        String turn = (String) playerData.get(1);
+        String[] c_boneyard = null;
+        List<Tile> c_boneyard_converted = new ArrayList<>();
+        String[] c_hand = null;
+        List<Tile> c_hand_converted = new ArrayList<>();
+        String[] c_stacks = null;
+        List<Tile> c_stacks_converted = new ArrayList<>();
+        for (Map<String, Object> player : serializedPlayers) {
+            String playerID = (String) player.get("playerID");
+            c_boneyard = (String[]) player.get("boneyard");
+            for (String tile : c_boneyard) {
+                String color = tile.substring(0,1);
+                int left = Integer.parseInt(tile.substring(1,2));
+                int right = Integer.parseInt(tile.substring(2,3));
+                Tile newTile = null;
+                if (color.equals("B")){
+                    newTile = new Tile(left, right, humanPlayer);
+                }
+                else{
+                    newTile = new Tile(left, right, computerPlayer_);
+                }
+                c_boneyard_converted.add(newTile);
+            }
+            c_hand = (String[]) player.get("hand");
+            for (String tile : c_hand) {
+                String color = tile.substring(0,1);
+                int left = Integer.parseInt(tile.substring(1,2));
+                int right = Integer.parseInt(tile.substring(2,3));
+                Tile newTile = null;
+                if (color.equals("B")){
+                    newTile = new Tile(left, right, humanPlayer);
+                }
+                else{
+                    newTile = new Tile(left, right, computerPlayer_);
+                }
+                c_hand_converted.add(newTile);
+            }
+            c_stacks = (String[]) player.get("stacks");
+            for (String tile : c_stacks) {
+                String color = tile.substring(0,1);
+                int left = Integer.parseInt(tile.substring(1,2));
+                int right = Integer.parseInt(tile.substring(2,3));
+                Tile newTile = null;
+                if (color.equals("B")){
+                    newTile = new Tile(left, right, humanPlayer);
+                }
+                else{
+                    newTile = new Tile(left, right, computerPlayer_);
+                }
+                c_stacks_converted.add(newTile);
+            }
+            int score = (int) player.get("score");
+            int roundsWon = (int) player.get("rounds_won");
+            if (playerID.equals("Computer")) {
+                computerPlayer_.loadPlayer(playerID, "W", (c_boneyard_converted), c_hand_converted, c_stacks_converted, score, roundsWon);
+            } else if (playerID.equals("Human")) {
+                humanPlayer.loadPlayer(playerID, "B", c_boneyard_converted, c_hand_converted, c_stacks_converted, score, roundsWon);
+            }
+            c_hand_converted = new ArrayList<>();
+            c_boneyard_converted = new ArrayList<>();
+            c_stacks_converted = new ArrayList<>();
+        }
+        int handnum = 4-(humanPlayer.getBoneyard().size()/6);
+        if (handnum == 0){
+            for (Player c_player : players){
+                c_player.shuffleBoneyard();
+                c_player.moveFromBoneyardToHandN(6);
+                c_player.moveFromHandToStackN(6);
+            }
+            handnum++;
+        }
+        if (turn.equals("Computer")) {
+            players.add(computerPlayer_);
+            players.add(humanPlayer);
+        } else if (turn.equals("Human")) {
+            players.add(humanPlayer);
+            players.add(computerPlayer_);
+        }
+        else{
+            players.add(humanPlayer);
+            players.add(computerPlayer_);
+            this.determineOrder();
+        }
+        this.play_round(handnum);
+        this.play_again();
+    }
+
+        public static void main (String[]args){
         Tournament tournament = new Tournament();
     }
 }
