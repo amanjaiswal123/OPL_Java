@@ -1,8 +1,9 @@
 import java.io.*;
 import java.util.*;
 
+import static java.lang.System.exit;
+
 public class Tournament {
-    Player player1;
     private Scanner scanner;
 
     List<Player> players;
@@ -33,6 +34,33 @@ public class Tournament {
         this.play_again();
     }
 
+
+    public void startNewRound(){
+        // Create a new player object
+        int humanRoundWins = 0;
+        int computerRoundWins = 0;
+        for (Player player : players) {
+            if (player.getPlayerID().equals("Human")) {
+                humanRoundWins = player.getRoundsWon();
+            } else {
+                computerRoundWins = player.getRoundsWon();
+            }
+        }
+        this.players = new ArrayList<>();
+        Player humanPlayer = new Player();
+        humanPlayer.createNewPlayer("Human", "B");
+        Player computerPlayer = new computerPlayer();
+        computerPlayer.createNewPlayer("Computer", "W");
+        this.players = new ArrayList<>();
+        this.players.add(humanPlayer);
+        this.players.add(computerPlayer);
+        computerPlayer.setRoundsWon(computerRoundWins);
+        humanPlayer.setRoundsWon(humanRoundWins);
+        this.determineOrder();
+        this.play_round(1);
+        this.play_again();
+    }
+
     public String getValidInput(String prompt, List<String> validInputs) {
         String input;
 
@@ -53,27 +81,40 @@ public class Tournament {
 
 
     public void play_again(){
-        String input = this.getValidInput("Would you like to play again? (Y/N): ", Arrays.asList("Y", "N"));
-        if (input.equals("Y")) {
-            this.start_new_tournament();
-        } else {
+        System.out.println("\nTournament Results:");
+        if (players.get(0).getScore() != players.get(1).getScore()) {
             boolean first = true;
             Player winner = null;
             for (Player player : players) {
-                System.out.println("Player " + player.getPlayerID() + " Round Total Wins: " + player.getRoundsWon());
                 if (first) {
                     winner = player;
                     first = false;
-                } else {
-                    if (player.getRoundsWon() > winner.getRoundsWon()) {
+                }
+                else {
+                    if (player.getScore() > winner.getScore()) {
                         winner = player;
                     }
                 }
             }
+            winner.addRoundWins();
+            System.out.println("Player " + winner.getPlayerID() + " won the round!\n");;
+        } else {
+            System.out.println("The Tournament is a Tie!");
+        }
+
+        for (Player player : players) {
+            System.out.println("Player " + player.getPlayerID() + " won " + player.getRoundsWon() + " rounds.");
+        }
+        String input = this.getValidInput("\nWould you like to another round? (Y/N): ", Arrays.asList("Y", "N"));
+        if (input.equals("Y")) {
+            this.startNewRound();
+        } else {
             if (players.get(0).getRoundsWon() == players.get(1).getRoundsWon()) {
                 System.out.println("\nThe Tournament is a Tie!\n");
+            } else if (players.get(0).getRoundsWon() > players.get(1).getRoundsWon()) {
+                System.out.println("\nPlayer " + players.get(0).getPlayerID() + " won the Tournament!\n");
             } else {
-                System.out.println("Player " + winner.getPlayerID() + " won the tournament!");
+                System.out.println("\nPlayer " + players.get(1).getPlayerID() + " won the Tournament!\n");
             }
             System.out.println("Thanks for playing!");
         }
@@ -183,7 +224,7 @@ public class Tournament {
     }
     public void displayAllHands() {
         for (Player player : this.players) {
-            System.out.print("Player " + player.getPlayerID() + "'s stack: ");
+            System.out.print("Player " + player.getPlayerID() + "'s hand: ");
             for (Tile tile : player.getHand()) {
                 tile.displayTile();
             }
@@ -276,6 +317,7 @@ public class Tournament {
                         writer.println(save);
                         writer.close();
                         System.out.println("Data has been saved to the file.");
+                        exit(0);
                     } catch (IOException e) {
                         System.out.println("An error occurred: " + e.getMessage());
                     }
@@ -290,13 +332,13 @@ public class Tournament {
             }
         }
 
-          System.out.println("\n\nHand Over");
-          System.out.println("Final Hands");
+          System.out.println("\nHand Over");
+          System.out.println("Final Hands:");
           this.displayAllHands();
-          System.out.println("Final Stacks");
+          System.out.println("Final Stacks:");
           this.displayAllStacks();
           // Score the hand
-          System.out.println("\nScoring Hands:");
+          System.out.println("\nHand Scores:");
           // Get the scores for the hand
           Map<String, Integer> handScores = this.scoreHand();
     //     // Get the scores for the stacks
@@ -309,7 +351,9 @@ public class Tournament {
             currentPlayer.addScore(score);
             System.out.println("Player " + currentPlayer.getPlayerID() + " scored " + score + " points");
         }
+        System.out.println("\nCumulative Scores:");
       for (Player currentPlayer : players) {
+          System.out.println("Player " + currentPlayer.getPlayerID() + ": " + currentPlayer.getScore());
          currentPlayer.clearHand();
         }
     }
@@ -461,11 +505,11 @@ public class Tournament {
     }
 
     public void load_tournament () {
-        String filename;
+        String filename = "seralize6";
 
         while (true) {
-            System.out.print("Please Enter a filename: ");
-            filename = this.scanner.nextLine().trim();
+            //System.out.print("Please Enter a filename: ");
+            //filename = this.scanner.nextLine().trim();
             filename = "Seralize/"+filename+".txt";
             if (!this.isFileTaken(filename)) {
                 System.out.println("The file is not present. Check the Seralize Directory \n");
