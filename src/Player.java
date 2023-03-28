@@ -209,6 +209,29 @@ public class Player {
         return validMove;
     }
 
+    public String savePlayer() {
+        String string = "Human:\n";
+        string += "   Stacks: ";
+        for (Tile tile : stack) {
+            string += tile.toString().substring(1, 4) + " ";
+        }
+        string += "\n";
+        string += "   Boneyard: ";
+        for (Tile tile : boneyard) {
+            string += tile.toString().substring(1, 4) + " ";
+        }
+        string += "\n";
+        string += "   Hand: ";
+        for (Tile tile : hand) {
+            string += tile.toString().substring(1, 4) + " ";
+        }
+        string += "\n";
+        string += "   Score: " + score + "\n";
+        string += "   Rounds Won: " + roundsWon + "\n";
+
+        return string;
+    }
+
 
     public List<Object> recommendMove(List<Player> players) {
         List<List<Object>> validMoves = new ArrayList<>();

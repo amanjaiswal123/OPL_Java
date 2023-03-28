@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class Tournament {
@@ -12,7 +10,12 @@ public class Tournament {
     public Tournament() {
         this.players = new ArrayList<>();
         this.scanner = new Scanner(System.in);
-        this.load_tournament();
+        boolean load = getValidInput("Welcome to Dominoes! Would you like to load a saved tournament? (Y/N): ", Arrays.asList("Y", "N")).equals("Y");
+        if (load) {
+            this.load_tournament();
+        } else {
+            this.start_new_tournament();
+        }
     }
 
     public void start_new_tournament() {
@@ -215,6 +218,7 @@ public class Tournament {
         }
         while (consecutivePasses < players.size() && !allEmptyHands) {
             for (Player currentPlayer : players) {
+                currentPlayer.savePlayer();
                 System.out.println("Player " + currentPlayer.getPlayerID() + "'s turn:\n");
                 currentPlayer.displayHand();
                 System.out.println();
@@ -241,6 +245,40 @@ public class Tournament {
                 }
                 if (consecutivePasses >= players.size()) {
                     break;
+                }
+                boolean askSaveGame = currentPlayer.getValidInput("Would you like to save the game? (Y/N): ", Arrays.asList("Y", "N")).equals("Y");
+                if (askSaveGame) {
+                    StringBuilder save = new StringBuilder();
+                    for (Player player : players) {
+                        save.append(player.savePlayer());
+                        save.append("\n");
+                    }
+                    if (players.indexOf(currentPlayer) == 1) {
+                        save.append("Turn: ").append(this.players.get(0).getPlayerID());
+                    } else {
+                        save.append("Turn: ").append(this.players.get(1).getPlayerID());
+                    }
+                    String filename;
+
+                    while (true) {
+                        System.out.print("Please Enter a filename: ");
+                        filename = this.scanner.nextLine().trim();
+                        filename = "Seralize/"+filename+".txt";
+                        if (this.isFileTaken(filename)) {
+                            System.out.println("The Filename is already taken, please enter a diffrent one. Check the Seralize Directory \n");
+                        } else {
+                            break;
+                        }
+                    }
+
+                    try {
+                        PrintWriter writer = new PrintWriter(filename);
+                        writer.println(save);
+                        writer.close();
+                        System.out.println("Data has been saved to the file.");
+                    } catch (IOException e) {
+                        System.out.println("An error occurred: " + e.getMessage());
+                    }
                 }
             }
             allEmptyHands = true;
@@ -274,6 +312,11 @@ public class Tournament {
       for (Player currentPlayer : players) {
          currentPlayer.clearHand();
         }
+    }
+
+    public static boolean isFileTaken(String filePath) {
+        File file = new File(filePath);
+        return file.exists();
     }
 
     public void executeMove (Tile handTile, Tile stackTile){
@@ -418,7 +461,19 @@ public class Tournament {
     }
 
     public void load_tournament () {
-        List<Object> playerData = extractPlayerData("C:/Users/Aman Jaiswal/IdeaProjects/OPL/Seralize/seralize1.txt");
+        String filename;
+
+        while (true) {
+            System.out.print("Please Enter a filename: ");
+            filename = this.scanner.nextLine().trim();
+            filename = "Seralize/"+filename+".txt";
+            if (!this.isFileTaken(filename)) {
+                System.out.println("The file is not present. Check the Seralize Directory \n");
+            } else {
+                break;
+            }
+        }
+        List<Object> playerData = extractPlayerData(filename);
         Player humanPlayer = new Player();
         Player computerPlayer_ = new computerPlayer();
         List<Map<String, Object>> serializedPlayers = (List<Map<String, Object>>) playerData.get(0);
